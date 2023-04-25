@@ -64,6 +64,7 @@ curl --location --request PUT 'http://localhost:8080/api/cards' \
     "status": "DONE"
 }'
 ```
+Also refer to [postman_collection.json](com.logicea.cards.postman_collection.json) for more examples.
 
 ## Requirements
 
