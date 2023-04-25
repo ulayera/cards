@@ -28,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       FilterChain filterChain) throws ServletException, IOException {
     String jwt = getJwtFromRequest(request);
 
+    // Application users are identified uniquely by their mail address
     if (StringUtils.hasText(jwt)) {
       DecodedJWT decodedJWT = jwtService.verifyJWT(jwt);
       String username = decodedJWT.getClaim("email")

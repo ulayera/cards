@@ -13,14 +13,14 @@ import org.springframework.context.event.EventListener;
 @Configuration
 public class InitializeAppConfig {
 
+  private final JwtService jwtService;
+  private final UserService userService;
   @Value("${test.member.a}")
   private String testMemberA;
   @Value("${test.member.b}")
   private String testMemberB;
   @Value("${test.admin}")
   private String testAdmin;
-  private final JwtService jwtService;
-  private final UserService userService;
 
   public InitializeAppConfig(JwtService jwtService, UserService userService) {
     this.jwtService = jwtService;
@@ -35,6 +35,7 @@ public class InitializeAppConfig {
 
   private void initialize(String email) {
     Optional<User> user = userService.findByEmail(email);
+    // TODO: Add password to application.properties and initialize users with it
     if (user.isEmpty()) {
       userService.save(User.withEmail(email));
     }

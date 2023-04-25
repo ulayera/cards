@@ -28,7 +28,7 @@ Alternatively you can use the [Spring Boot Maven plugin](https://docs.spring.io/
 
 ```shell
 
-# GET /api/cards
+# GET /api/cards?page=0&size=5
 curl --location 'http://localhost:8080/api/cards' \
 --header 'Authorization: Bearer {{token}}'
 ```
@@ -47,8 +47,7 @@ curl --location 'http://localhost:8080/api/cards' \
 --data '{
   "name": "some card",
   "description": "some description",
-  "color": "red",
-  "status": "TO_DO"
+  "color": "#FFFFFF"
 }'
 ```
 
@@ -61,15 +60,36 @@ curl --location --request PUT 'http://localhost:8080/api/cards' \
     "id": 8,
     "name": "some card EDITED",
     "description": "some description",
-    "color": "red",
-    "status": "TO_DO"
+    "color": "#FFFFFF",
+    "status": "DONE"
 }'
 ```
 
+## Requirements
+
+1. Application users are identified uniquely by their mail address, have a role (Member or Admin) and use a password to authenticate themselves before accessing cards
+   1. Members have access to cards they created
+   1. Admins have access to all cards
+1. A user creates a card by providing a name for it and, optionally, a description and a color
+   1. Name is mandatory
+   1. Color, if provided, should conform to a “6 alphanumeric characters prefixed with a #“ format
+   1. Upon creation, the status of a card is To Do
+1. A user can search through cards they have access to
+   1. Filters include name, color, status and date of creation
+   1. Optionally limit results using page & size or offset & limit options
+   1. Results may be sorted by name, color, status, date of creation
+1. A user can request a single card they have access to
+1. A user can update the name, the description, the color and/or the status of a card they have access to
+   1. Contents of the description and color fields can be cleared out
+   1. Available statuses are To Do, In Progress and Done
+1. A user can delete a card they have access to
+
 ## Pending requirements:
 
-- Allow admin to manage cards from any user
-- 
+1. Allow admin to manage cards from any user
+2. Allow sorting of GET /api/cards
+3. Add login REST endpoint
+4. Add password to application.properties and initialize it in InitializeAppConfig class
 
 ```shell
 curl --location --request DELETE 'http://localhost:8080/api/cards/8' \

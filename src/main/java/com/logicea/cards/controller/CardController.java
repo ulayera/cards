@@ -1,7 +1,9 @@
 package com.logicea.cards.controller;
 
 import com.logicea.cards.model.Card;
+import com.logicea.cards.model.Status;
 import com.logicea.cards.model.User;
+import com.logicea.cards.repository.CardSpecBuilder;
 import com.logicea.cards.service.CardService;
 import com.logicea.cards.service.UserService;
 import jakarta.validation.Valid;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -34,12 +37,25 @@ public class CardController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<Card>> getAllCards(Principal principal, Pageable pageable) {
+  public ResponseEntity<Page<Card>> getAllCards(Principal principal, Pageable pageable,
+      // a user can filter by name, color, status and a date time range
+      // TODO: add sorting
+      @RequestParam(required = false) String name,
+      @RequestParam(required = false) String color,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) LocalDateTime from,
+      @RequestParam(required = false) LocalDateTime to) {
     User user = getUser(principal);
-    Page<Card> cards = cardService.findByUser(user, pageable);
+    CardSpecBuilder specBuilder = new CardSpecBuilder().name(name)
+        .color(color)
+        .status(Status.fromString(status))
+        .from(from)
+        .to(to);
+    Page<Card> cards = cardService.findByUser(user, specBuilder, pageable);
     return ResponseEntity.ok(cards);
   }
 
+  // users can search for a specific card by id
   @GetMapping("/{id}")
   public ResponseEntity<Card> getCardById(@PathVariable Long id, Principal principal) {
     User user = getUser(principal);
@@ -48,22 +64,28 @@ public class CardController {
         .orElseGet(() -> ResponseEntity.ofNullable(null));
   }
 
+  // users can create a new card
   @PostMapping
   public ResponseEntity<Card> createCard(@Valid @RequestBody Card card, Principal principal) {
     User user = getUser(principal);
     card.setUser(user);
+    // we set TO_DO as default status
+    card.setStatus(Status.TO_DO);
     card.setDateCreated(LocalDateTime.now());
     Card createdCard = cardService.save(card);
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(createdCard);
   }
 
+  // users can update a card
   @PutMapping
   public ResponseEntity<Card> updateCard(@Valid @RequestBody Card updatedCard, Principal principal) {
     User user = getUser(principal);
     Optional<Card> existingCard = cardService.findByIdAndUser(updatedCard.getId(), user);
     if (existingCard.isPresent()) {
       Card card = existingCard.get();
+      // Validate attributes are not null, so we don't clear unintentionally
+      // If attribute is empty string, we want to clear it
       if (updatedCard.getName() != null) {
         card.setName(updatedCard.getName());
       }
@@ -83,6 +105,7 @@ public class CardController {
         .build();
   }
 
+  // users can delete a card
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteCard(@PathVariable Long id, Principal principal) {
     User user = getUser(principal);

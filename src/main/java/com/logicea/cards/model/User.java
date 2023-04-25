@@ -122,8 +122,8 @@ public class User implements UserDetails {
     return cards;
   }
 
-    public boolean isAdmin() {
-        return role == Role.ADMIN;
-    }
+  public boolean isAdmin() {
+    return role == Role.ADMIN;
+  }
 
 }

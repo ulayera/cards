@@ -21,11 +21,13 @@ public class Card {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  // name is mandatory
   @NotNull
   private String name;
 
   private String description;
 
+  // color must be a 6 digit hexadecimal number prefixed by #
   @Pattern(regexp = "^#([0-9a-fA-F]{6})$")
   private String color;
 
