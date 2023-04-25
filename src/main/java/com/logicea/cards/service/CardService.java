@@ -16,11 +16,11 @@ public class CardService {
   private CardRepository cardRepository;
 
   public Page<Card> findByUser(User user, Pageable pageable) {
-    return cardRepository.findByUser(user, pageable);
+    return user.isAdmin() ?  cardRepository.findAll(pageable) : cardRepository.findByUser(user, pageable);
   }
 
   public Optional<Card> findByIdAndUser(Long id, User user) {
-    return cardRepository.findByIdAndUser(id, user);
+    return user.isAdmin() ?  cardRepository.findById(id) : cardRepository.findByIdAndUser(id, user);
   }
 
   public Card save(Card card) {

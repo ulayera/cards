@@ -1,5 +1,6 @@
 package com.logicea.cards.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,6 +35,7 @@ public class User implements UserDetails {
   @Enumerated(EnumType.STRING)
   private Role role;
 
+  @JsonManagedReference
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Card> cards;
 
@@ -120,5 +122,8 @@ public class User implements UserDetails {
     return cards;
   }
 
+    public boolean isAdmin() {
+        return role == Role.ADMIN;
+    }
 
 }

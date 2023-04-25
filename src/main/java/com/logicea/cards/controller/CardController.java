@@ -6,6 +6,7 @@ import com.logicea.cards.service.CardService;
 import com.logicea.cards.service.UserService;
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,14 +35,14 @@ public class CardController {
 
   @GetMapping
   public ResponseEntity<Page<Card>> getAllCards(Principal principal, Pageable pageable) {
-    User user = userService.findByEmail(principal.getName()).orElseThrow();
+    User user = getUser(principal);
     Page<Card> cards = cardService.findByUser(user, pageable);
     return ResponseEntity.ok(cards);
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<Card> getCardById(@PathVariable Long id, Principal principal) {
-    User user = new User(principal.getName());
+    User user = getUser(principal);
     Optional<Card> card = cardService.findByIdAndUser(id, user);
     return card.map(ResponseEntity::ok)
         .orElseGet(() -> ResponseEntity.ofNullable(null));
@@ -49,24 +50,32 @@ public class CardController {
 
   @PostMapping
   public ResponseEntity<Card> createCard(@Valid @RequestBody Card card, Principal principal) {
-    User user = new User(principal.getName());
+    User user = getUser(principal);
     card.setUser(user);
+    card.setDateCreated(LocalDateTime.now());
     Card createdCard = cardService.save(card);
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(createdCard);
   }
 
-  @PutMapping("/{id}")
-  public ResponseEntity<Card> updateCard(@PathVariable Long id,
-      @Valid @RequestBody Card updatedCard, Principal principal) {
-    User user = new User(principal.getName());
-    Optional<Card> existingCard = cardService.findByIdAndUser(id, user);
+  @PutMapping
+  public ResponseEntity<Card> updateCard(@Valid @RequestBody Card updatedCard, Principal principal) {
+    User user = getUser(principal);
+    Optional<Card> existingCard = cardService.findByIdAndUser(updatedCard.getId(), user);
     if (existingCard.isPresent()) {
       Card card = existingCard.get();
-      card.setName(updatedCard.getName());
-      card.setDescription(updatedCard.getDescription());
-      card.setColor(updatedCard.getColor());
-      card.setStatus(updatedCard.getStatus());
+      if (updatedCard.getName() != null) {
+        card.setName(updatedCard.getName());
+      }
+      if (updatedCard.getDescription() != null) {
+        card.setDescription(updatedCard.getDescription());
+      }
+      if (updatedCard.getColor() != null) {
+        card.setColor(updatedCard.getColor());
+      }
+      if (updatedCard.getStatus() != null) {
+        card.setStatus(updatedCard.getStatus());
+      }
       Card savedCard = cardService.save(card);
       return ResponseEntity.ok(savedCard);
     }
@@ -76,7 +85,7 @@ public class CardController {
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteCard(@PathVariable Long id, Principal principal) {
-    User user = new User(principal.getName());
+    User user = getUser(principal);
     Optional<Card> existingCard = cardService.findByIdAndUser(id, user);
     if (existingCard.isPresent()) {
       cardService.delete(existingCard.get());
@@ -85,5 +94,10 @@ public class CardController {
     }
     return ResponseEntity.notFound()
         .build();
+  }
+
+  private User getUser(Principal principal) {
+    return userService.findByEmail(principal.getName())
+        .orElseThrow();
   }
 }
